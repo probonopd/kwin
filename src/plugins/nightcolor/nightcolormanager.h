@@ -16,6 +16,8 @@
 #include <QPair>
 #include <QDateTime>
 
+#include <KConfigWatcher>
+
 class QTimer;
 
 namespace KWin
@@ -305,6 +307,7 @@ private:
     int m_nightTargetTemp = DEFAULT_NIGHT_TEMPERATURE;
 
     int m_inhibitReferenceCount = 0;
+    KConfigWatcher::Ptr m_configWatcher;
 };
 
 } // namespace KWin

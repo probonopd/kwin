@@ -87,6 +87,10 @@ NightColorManager::~NightColorManager()
 void NightColorManager::init()
 {
     NightColorSettings::instance(kwinApp()->config());
+
+    m_configWatcher = KConfigWatcher::create(kwinApp()->config());
+    connect(m_configWatcher.data(), &KConfigWatcher::configChanged, this, &NightColorManager::reparseConfigAndReset);
+
     // we may always read in the current config
     readConfig();
 
