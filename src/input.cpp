@@ -2748,6 +2748,8 @@ void InputDeviceHandler::init()
     connect(workspace(), &Workspace::stackingOrderChanged, this, &InputDeviceHandler::update);
     connect(workspace(), &Workspace::clientMinimizedChanged, this, &InputDeviceHandler::update);
     connect(VirtualDesktopManager::self(), &VirtualDesktopManager::currentChanged, this, &InputDeviceHandler::update);
+
+    connect(this, &InputDeviceHandler::decorationDestroyed, this, &InputDeviceHandler::updateFocus);
 }
 
 bool InputDeviceHandler::setAt(Toplevel *toplevel)

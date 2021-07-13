@@ -43,6 +43,7 @@ protected:
     bool belongsToSameApplication(const AbstractClient *other, SameApplicationChecks checks) const override;
     bool belongsToDesktop() const override;
     void doSetActive() override;
+    void destroyDecoration() override;
     void updateCaption() override;
 
     void cleanGrouping();

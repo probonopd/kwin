@@ -23,6 +23,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "pointer_input.h"
+
 using namespace KWaylandServer;
 
 namespace KWin
@@ -219,6 +221,12 @@ void WaylandClient::doSetActive()
         StackingUpdatesBlocker blocker(workspace());
         workspace()->focusToNull();
     }
+}
+
+void WaylandClient::destroyDecoration()
+{
+    AbstractClient::destroyDecoration();
+    Q_EMIT input()->pointer()->decorationDestroyed();
 }
 
 void WaylandClient::updateDepth()
