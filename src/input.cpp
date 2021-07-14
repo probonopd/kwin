@@ -26,6 +26,7 @@
 #include "tabbox/tabbox.h"
 #endif
 #include "internal_client.h"
+#include "libeis/connection.h"
 #include "libinput/connection.h"
 #include "libinput/device.h"
 #include "platform.h"
@@ -2103,6 +2104,7 @@ InputRedirection::InputRedirection(QObject *parent)
     if (Application::usesLibinput()) {
         setupLibInput();
     }
+    LibEis::Connection::create();
     connect(kwinApp(), &Application::workspaceCreated, this, &InputRedirection::setupWorkspace);
 }
 
