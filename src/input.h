@@ -468,7 +468,7 @@ protected:
     explicit InputDeviceHandler(InputRedirection *parent);
 
     virtual void cleanupInternalWindow(QWindow *old, QWindow *now) = 0;
-    virtual void cleanupDecoration(Decoration::DecoratedClientImpl *old, Decoration::DecoratedClientImpl *now) = 0;
+    virtual void cleanupDecoration(Decoration::DecoratedClientImpl *old, Decoration::DecoratedClientImpl *now);
 
     virtual void focusUpdate(Toplevel *old, Toplevel *now) = 0;
 
@@ -508,6 +508,7 @@ private:
         QPointer<QWindow> internalWindow;
     } m_focus;
 
+    QMetaObject::Connection m_decorationDestroyedConnection;
     bool m_inited = false;
 };
 

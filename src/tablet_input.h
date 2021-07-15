@@ -62,8 +62,6 @@ public:
     }
 
 private:
-    void cleanupDecoration(Decoration::DecoratedClientImpl *old,
-                           Decoration::DecoratedClientImpl *now) override;
     void cleanupInternalWindow(QWindow *old, QWindow *now) override;
     void focusUpdate(KWin::Toplevel *old, KWin::Toplevel *now) override;
 

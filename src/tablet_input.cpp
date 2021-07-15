@@ -121,13 +121,6 @@ void KWin::TabletInputRedirection::tabletPadRingEvent(int number, int position, 
                                        std::placeholders::_1, number, position, isFinger, tabletPadId));
 }
 
-void TabletInputRedirection::cleanupDecoration(Decoration::DecoratedClientImpl *old,
-                                               Decoration::DecoratedClientImpl *now)
-{
-    Q_UNUSED(old)
-    Q_UNUSED(now)
-}
-
 void TabletInputRedirection::cleanupInternalWindow(QWindow *old, QWindow *now)
 {
     Q_UNUSED(old)

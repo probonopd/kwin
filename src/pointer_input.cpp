@@ -472,6 +472,7 @@ void PointerInputRedirection::cleanupInternalWindow(QWindow *old, QWindow *now)
 
 void PointerInputRedirection::cleanupDecoration(Decoration::DecoratedClientImpl *old, Decoration::DecoratedClientImpl *now)
 {
+    InputDeviceHandler::cleanupDecoration(old, now);
     disconnect(m_decorationGeometryConnection);
     m_decorationGeometryConnection = QMetaObject::Connection();
 

@@ -127,14 +127,6 @@ void TouchInputRedirection::cleanupInternalWindow(QWindow *old, QWindow *now)
     // nothing to do
 }
 
-void TouchInputRedirection::cleanupDecoration(Decoration::DecoratedClientImpl *old, Decoration::DecoratedClientImpl *now)
-{
-    Q_UNUSED(old);
-    Q_UNUSED(now);
-
-    // nothing to do
-}
-
 void TouchInputRedirection::processDown(qint32 id, const QPointF &pos, quint32 time, LibInput::Device *device)
 {
     Q_UNUSED(device)

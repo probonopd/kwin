@@ -2901,6 +2901,23 @@ QWindow *InputDeviceHandler::internalWindow() const
     return m_focus.internalWindow;
 }
 
+void InputDeviceHandler::cleanupDecoration(Decoration::DecoratedClientImpl *old, Decoration::DecoratedClientImpl *now)
+{
+    disconnect(m_decorationDestroyedConnection);
+    m_decorationDestroyedConnection = QMetaObject::Connection();
+
+    if (!now) {
+        return;
+    }
+
+    // if our decoration gets destroyed whilst it has focus, we pass focus on to the same client
+    m_decorationDestroyedConnection = connect(now, &QObject::destroyed, this,
+        [this, now] {
+            updateDecoration();
+            updateFocus();
+        });
+}
+
 } // namespace
 
 #include "input.moc"
