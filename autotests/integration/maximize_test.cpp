@@ -12,6 +12,7 @@
 #include "decorations/decorationbridge.h"
 #include "decorations/settings.h"
 #include "platform.h"
+#include "pointer_input.h"
 #include "screens.h"
 #include "wayland_server.h"
 #include "workspace.h"
@@ -21,10 +22,16 @@
 #include <KWayland/Client/surface.h>
 #include <KWayland/Client/server_decoration.h>
 #include <KWayland/Client/plasmashell.h>
+#include <KWayland/Client/seat.h>
+#include <KWayland/Client/pointer.h>
 
 #include <KDecoration2/DecoratedClient>
 #include <KDecoration2/Decoration>
 #include <KDecoration2/DecorationSettings>
+
+#include <QQuickItem>
+
+#include <linux/input.h>
 
 using namespace KWin;
 using namespace KWayland::Client;
@@ -43,6 +50,9 @@ private Q_SLOTS:
     void testInitiallyMaximizedBorderless();
     void testBorderlessMaximizedWindow();
     void testMaximizedGainFocusAndBeActivated();
+
+private:
+    KWayland::Client::Seat *m_seat = nullptr;
 };
 
 void TestMaximized::initTestCase()
@@ -68,7 +78,10 @@ void TestMaximized::init()
 {
     QVERIFY(Test::setupWaylandConnection(Test::AdditionalWaylandInterface::Decoration |
                                          Test::AdditionalWaylandInterface::XdgDecorationV1 |
-                                         Test::AdditionalWaylandInterface::PlasmaShell));
+                                         Test::AdditionalWaylandInterface::PlasmaShell |
+                                         Test::AdditionalWaylandInterface::Seat));
+    QVERIFY(Test::waitForWaylandPointer());
+    m_seat = Test::waylandSeat();
 
     screens()->setCurrent(0);
     KWin::Cursors::self()->mouse()->setPos(QPoint(512, 512));
@@ -218,6 +231,15 @@ void TestMaximized::testBorderlessMaximizedWindow()
 {
     // This test verifies that a maximized client looses it's server-side
     // decoration when the borderless maximized option is on.
+    //
+    // Also checks for focusing lose: BUG 411884.
+
+    // create pointer for focus tracking
+    auto pointer = m_seat->createPointer(m_seat);
+    QVERIFY(pointer);
+    QVERIFY(pointer->isValid());
+    QSignalSpy buttonStateChangedSpy(pointer, &Pointer::buttonStateChanged);
+    QVERIFY(buttonStateChangedSpy.isValid());
 
     // Enable the borderless maximized windows option.
     auto group = kwinApp()->config()->group("Windows");
@@ -263,6 +285,13 @@ void TestMaximized::testBorderlessMaximizedWindow()
     QVERIFY(states.testFlag(Test::XdgToplevel::State::Activated));
     QVERIFY(!states.testFlag(Test::XdgToplevel::State::Maximized));
 
+    // currently there should not be a focused pointer surface
+    QVERIFY(!pointer->enteredSurface());
+    quint32 timestamp = 0;
+    kwinApp()->platform()->pointerButtonPressed(BTN_LEFT, timestamp++);
+    kwinApp()->platform()->pointerButtonReleased(BTN_LEFT, timestamp++);
+    QVERIFY(!buttonStateChangedSpy.wait(100));
+
     // Maximize the client.
     const QRect maximizeRestoreGeometry = client->frameGeometry();
     workspace()->slotWindowMaximize();
@@ -283,6 +312,12 @@ void TestMaximized::testBorderlessMaximizedWindow()
     QCOMPARE(client->requestedMaximizeMode(), MaximizeMode::MaximizeFull);
     QCOMPARE(client->isDecorated(), false);
 
+    // clicking on any place of maximized window should focusing it
+    kwinApp()->platform()->pointerButtonPressed(BTN_LEFT, timestamp++);
+    kwinApp()->platform()->pointerButtonReleased(BTN_LEFT, timestamp++);
+    QVERIFY(buttonStateChangedSpy.wait());
+    QCOMPARE(pointer->enteredSurface(), surface.data());
+
     // Restore the client.
     workspace()->slotWindowMaximize();
     QVERIFY(surfaceConfigureRequestedSpy.wait());
@@ -299,6 +334,27 @@ void TestMaximized::testBorderlessMaximizedWindow()
     QCOMPARE(client->maximizeMode(), MaximizeMode::MaximizeRestore);
     QCOMPARE(client->requestedMaximizeMode(), MaximizeMode::MaximizeRestore);
     QCOMPARE(client->isDecorated(), true);
+
+    // simulate decoration hover
+    kwinApp()->platform()->pointerMotion(client->frameGeometry().topLeft(), timestamp++);
+    QVERIFY(input()->pointer()->decoration());
+
+    // Maximize again but this time when on decoration
+    workspace()->slotWindowMaximize();
+    QVERIFY(surfaceConfigureRequestedSpy.wait());
+    shellSurface->xdgSurface()->ack_configure(surfaceConfigureRequestedSpy.last().at(0).value<quint32>());
+    Test::render(surface.data(), QSize(1280, 1024), Qt::blue);
+    QVERIFY(frameGeometryChangedSpy.wait());
+    QCOMPARE(client->maximizeMode(), MaximizeFull);
+    QCOMPARE(client->requestedMaximizeMode(), MaximizeFull);
+    QCOMPARE(client->isDecorated(), false);
+
+    // window should have focus, BUG 411884
+    QVERIFY(!input()->pointer()->decoration());
+    kwinApp()->platform()->pointerButtonPressed(BTN_LEFT, timestamp++);
+    kwinApp()->platform()->pointerButtonReleased(BTN_LEFT, timestamp++);
+    QVERIFY(buttonStateChangedSpy.wait());
+    QCOMPARE(pointer->enteredSurface(), surface.data());
 
     // Destroy the client.
     shellSurface.reset();
