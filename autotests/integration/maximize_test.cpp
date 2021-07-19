@@ -13,6 +13,7 @@
 #include "decorations/settings.h"
 #include "platform.h"
 #include "pointer_input.h"
+#include "touch_input.h"
 #include "screens.h"
 #include "wayland_server.h"
 #include "workspace.h"
@@ -24,6 +25,7 @@
 #include <KWayland/Client/plasmashell.h>
 #include <KWayland/Client/seat.h>
 #include <KWayland/Client/pointer.h>
+#include <KWayland/Client/touch.h>
 
 #include <KDecoration2/DecoratedClient>
 #include <KDecoration2/Decoration>
@@ -241,6 +243,13 @@ void TestMaximized::testBorderlessMaximizedWindow()
     QSignalSpy buttonStateChangedSpy(pointer, &Pointer::buttonStateChanged);
     QVERIFY(buttonStateChangedSpy.isValid());
 
+    // create touch for focus tracking
+    auto touch = m_seat->createTouch(m_seat);
+    QVERIFY(touch);
+    QVERIFY(touch->isValid());
+    QSignalSpy sequenceEndedSpy(touch, &Touch::sequenceEnded);
+    QVERIFY(sequenceEndedSpy.isValid());
+
     // Enable the borderless maximized windows option.
     auto group = kwinApp()->config()->group("Windows");
     group.writeEntry("BorderlessMaximizedWindows", true);
@@ -318,6 +327,10 @@ void TestMaximized::testBorderlessMaximizedWindow()
     QVERIFY(buttonStateChangedSpy.wait());
     QCOMPARE(pointer->enteredSurface(), surface.data());
 
+    kwinApp()->platform()->touchDown(0, client->frameGeometry().center(), timestamp++);
+    kwinApp()->platform()->touchUp(0, timestamp++);
+    QVERIFY(sequenceEndedSpy.wait());
+
     // Restore the client.
     workspace()->slotWindowMaximize();
     QVERIFY(surfaceConfigureRequestedSpy.wait());
@@ -339,6 +352,9 @@ void TestMaximized::testBorderlessMaximizedWindow()
     kwinApp()->platform()->pointerMotion(client->frameGeometry().topLeft(), timestamp++);
     QVERIFY(input()->pointer()->decoration());
 
+    kwinApp()->platform()->touchDown(1, client->frameGeometry().topLeft(), timestamp++);
+    QVERIFY(input()->touch()->decoration());
+
     // Maximize again but this time when on decoration
     workspace()->slotWindowMaximize();
     QVERIFY(surfaceConfigureRequestedSpy.wait());
@@ -355,6 +371,13 @@ void TestMaximized::testBorderlessMaximizedWindow()
     kwinApp()->platform()->pointerButtonReleased(BTN_LEFT, timestamp++);
     QVERIFY(buttonStateChangedSpy.wait());
     QCOMPARE(pointer->enteredSurface(), surface.data());
+
+    QVERIFY(!input()->touch()->decoration());
+    kwinApp()->platform()->touchUp(1, timestamp++);
+    QVERIFY(!sequenceEndedSpy.wait(100));
+    kwinApp()->platform()->touchDown(2, client->frameGeometry().center(), timestamp++);
+    kwinApp()->platform()->touchUp(2, timestamp++);
+    QVERIFY(sequenceEndedSpy.wait());
 
     // Destroy the client.
     shellSurface.reset();
