@@ -90,18 +90,20 @@ void Connection::handleEvents()
             }
             case EIS_EVENT_DEVICE_REMOVED:
                 eis_device_disconnect(eis_event_get_device(event));
-                qDebug() << "device removed" << eis_device_get_name(eis_event_get_device(event)); 
+                qDebug() << "device removed" << eis_device_get_name(eis_event_get_device(event));
                 break;
             case EIS_EVENT_POINTER_MOTION: {
                 const auto x = eis_event_pointer_get_dx(event);
                 const auto y = eis_event_pointer_get_dy(event);
                 qDebug() <<  eis_client_get_name(eis_event_get_client(event)) << "pointer motion" << x << y;
+                Q_EMIT pointerMoved({x, y});
                 break;
             }
             case EIS_EVENT_POINTER_MOTION_ABSOLUTE: {
                 const auto x = eis_event_pointer_get_absolute_x(event);
                 const auto y = eis_event_pointer_get_absolute_y(event);
                 qDebug() <<  eis_client_get_name(eis_event_get_client(event)) << "pointer motion absolute" << x << y;
+                Q_EMIT pointerPositionChanged({x, y});
                 break;
             }
             case EIS_EVENT_POINTER_BUTTON: {
@@ -109,8 +111,10 @@ void Connection::handleEvents()
                 const auto press = eis_event_pointer_get_button_is_press(event);
                 if (press) {
                     qDebug() << eis_client_get_name(eis_event_get_client(event)) << "pointer press" << button;
+                    Q_EMIT pointerButtonPressed(button);
                 } else {
                     qDebug() << eis_client_get_name(eis_event_get_client(event)) << "pointer release" << button;
+                    Q_EMIT pointerButtonReleased(button);
                 }
                 break;
             }
@@ -118,12 +122,14 @@ void Connection::handleEvents()
                 const auto x = eis_event_pointer_get_scroll_x(event);
                 const auto y = eis_event_pointer_get_scroll_y(event);
                 qDebug() <<  eis_client_get_name(eis_event_get_client(event)) << "pointer scroll" << x << y;
+                Q_EMIT pointerScroll({x, y});
                 break;
             }
             case EIS_EVENT_POINTER_SCROLL_DISCRETE: {
                 const auto x = eis_event_pointer_get_scroll_discrete_x(event);
                 const auto y = eis_event_pointer_get_scroll_discrete_y(event);
                 qDebug() <<  eis_client_get_name(eis_event_get_client(event)) << "pointer scroll discrete" << x << y;
+                Q_EMIT pointerScrollDiscrete({x / 120.0, y / 120.0});
                 break;
             }
             case EIS_EVENT_KEYBOARD_KEY: {
@@ -131,25 +137,33 @@ void Connection::handleEvents()
                 const auto press = eis_event_keyboard_get_key_is_press(event);
                 if (press) {
                     qDebug() << eis_client_get_name(eis_event_get_client(event))  << "key press" << key;
+                    Q_EMIT keyboardKeyPressed(key);
                 } else {
                     qDebug() << eis_client_get_name(eis_event_get_client(event))  << "key release" << key;
+                    Q_EMIT keyboardKeyReleased(key);
                 }
                 break;
             }
             case EIS_EVENT_TOUCH_DOWN: {
                 const auto x = eis_event_touch_get_x(event);
                 const auto y = eis_event_touch_get_y(event);
-                qDebug() << eis_client_get_name(eis_event_get_client(event)) << "touch down" << x << y;
+                const auto id = eis_event_touch_get_id(event);
+                qDebug() << eis_client_get_name(eis_event_get_client(event)) << "touch down" << id << x << y;
+                Q_EMIT touchDown(id, {x, y});
                 break;
             }
             case EIS_EVENT_TOUCH_UP: {
-                qDebug() << eis_client_get_name(eis_event_get_client(event)) << "touch up";
+                const auto id = eis_event_touch_get_id(event);
+                qDebug() << eis_client_get_name(eis_event_get_client(event)) << "touch up" << id;
+                Q_EMIT touchUp(id);
                 break;
             }
             case EIS_EVENT_TOUCH_MOTION: {
                 const auto x = eis_event_touch_get_x(event);
                 const auto y = eis_event_touch_get_y(event);
-                qDebug() << eis_client_get_name(eis_event_get_client(event)) << "touch move" << x << y;
+                const auto id = eis_event_touch_get_id(event);
+                qDebug() << eis_client_get_name(eis_event_get_client(event)) << "touch move" << id << x << y;
+                Q_EMIT touchMotion(id, {x, y});
                 break;
             }
         }

@@ -2104,7 +2104,6 @@ InputRedirection::InputRedirection(QObject *parent)
     if (Application::usesLibinput()) {
         setupLibInput();
     }
-    LibEis::Connection::create();
     connect(kwinApp(), &Application::workspaceCreated, this, &InputRedirection::setupWorkspace);
 }
 
@@ -2509,6 +2508,67 @@ void InputRedirection::setupTouchpadShortcuts()
     connect(touchpadToggleAction, &QAction::triggered, m_libInput, &LibInput::Connection::toggleTouchpads);
     connect(touchpadOnAction, &QAction::triggered, m_libInput, &LibInput::Connection::enableTouchpads);
     connect(touchpadOffAction, &QAction::triggered, m_libInput, &LibInput::Connection::disableTouchpads);
+}
+
+void InputRedirection::setupEmulatedInput()
+{
+#ifdef HAVE_LIBEIS
+    auto connection = LibEis::Connection::create();
+    connect(connection, &LibEis::Connection::pointerMoved, this, [this](const QSizeF &delta) {
+        m_pointer->processMotion(globalPointer() + QPointF(delta.width(), delta.height()), 0);
+    });
+    connect(connection, &LibEis::Connection::pointerPositionChanged, this, [this](const QPointF &pos) {
+        m_pointer->processMotion(pos, 0);
+    });
+    connect(connection, &LibEis::Connection::pointerButtonPressed, this, [this](uint32_t button) {
+        m_pointer->processButton(button, InputRedirection::PointerButtonPressed, 0);
+    });
+    connect(connection, &LibEis::Connection::pointerButtonReleased, this, [this](uint32_t button) {
+        m_pointer->processButton(button, InputRedirection::PointerButtonReleased, 0);
+    });
+    connect(connection, &LibEis::Connection::pointerScroll, this, [this](const QSizeF &delta) {
+        if (delta.width()) {
+            m_pointer->processAxis(InputRedirection::PointerAxisHorizontal, delta.width(), 0, InputRedirection::PointerAxisSourceUnknown, 0);
+        }
+        if (delta.height()) {
+            m_pointer->processAxis(InputRedirection::PointerAxisVertical, delta.height(), 0, InputRedirection::PointerAxisSourceUnknown, 0);
+        }
+    });
+    connect(connection, &LibEis::Connection::pointerScrollDiscrete, this, [this](const QSizeF &clicks) {
+        constexpr int anglePerClick = 15;
+        if (clicks.width()) {
+            m_pointer->processAxis(InputRedirection::PointerAxisHorizontal,
+                                   clicks.width() * anglePerClick,
+                                   clicks.width(),
+                                   InputRedirection::PointerAxisSourceUnknown,
+                                   0);
+        }
+        if (clicks.height()) {
+            m_pointer->processAxis(InputRedirection::PointerAxisVertical,
+                                   clicks.height() * anglePerClick,
+                                   clicks.width(),
+                                   InputRedirection::PointerAxisSourceUnknown,
+                                   0);
+        }
+    });
+
+    connect(connection, &LibEis::Connection::keyboardKeyPressed, this, [this](uint32_t key) {
+        m_keyboard->processKey(key, InputRedirection::KeyboardKeyPressed, 0);
+    });
+    connect(connection, &LibEis::Connection::keyboardKeyReleased, this, [this](uint32_t key) {
+        m_keyboard->processKey(key, InputRedirection::KeyboardKeyReleased, 0);
+    });
+
+    connect(connection, &LibEis::Connection::touchDown, this, [this](uint32_t id, const QPointF &pos) {
+        m_touch->processDown(id, pos, 0);
+    });
+    connect(connection, &LibEis::Connection::touchMotion, this, [this](uint32_t id, const QPointF &pos) {
+        m_touch->processMotion(id, pos, 0);
+    });
+    connect(connection, &LibEis::Connection::touchUp, this, [this](uint32_t id) {
+        m_touch->processUp(id, 0);
+    });
+#endif
 }
 
 bool InputRedirection::hasAlphaNumericKeyboard()

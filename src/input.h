@@ -312,6 +312,7 @@ private:
     void setupLibInput();
     void setupTouchpadShortcuts();
     void setupLibInputWithScreens();
+    void setupEmulatedInput();
     void setupWorkspace();
     void reconfigure();
     void setupInputFilters();

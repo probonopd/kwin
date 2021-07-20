@@ -30,6 +30,18 @@ class KWIN_EXPORT Connection : public QObject
 public:
     ~Connection() override;
     static Connection *create();
+Q_SIGNALS:
+    void pointerMoved(const QSizeF &delta);
+    void pointerPositionChanged(const QPointF &pos);
+    void pointerButtonPressed(uint32_t button);
+    void pointerButtonReleased(uint32_t button);
+    void pointerScroll(const QSizeF &delta);
+    void pointerScrollDiscrete(const QSizeF &clicks);
+    void keyboardKeyPressed(uint32_t key);
+    void keyboardKeyReleased(uint32_t key);
+    void touchDown(uint32_t id, const QPointF &pos);
+    void touchMotion(uint32_t id, const QPointF &pos);
+    void touchUp(uint32_t id);
 private Q_SLOTS:
     void handleEvents();
 private:

@@ -243,6 +243,7 @@ set_package_properties(lcms2 PROPERTIES
 )
 add_feature_info("lcms2" lcms2_FOUND "Required for the color management system")
 
+
 # All the required XCB components
 find_package(XCB 1.10 REQUIRED COMPONENTS
     COMPOSITE

@@ -263,6 +263,7 @@ endif()
 if (Libeis_FOUND)
     target_sources(kwin PRIVATE libeis/connection.cpp)
     target_link_libraries(kwin Libeis::Libeis)
+    target_compile_definitions(kwin PRIVATE HAVE_LIBEIS)
 endif()
 
 qt5_generate_dbus_interface(virtualkeyboard_dbus.h org.kde.kwin.VirtualKeyboard.xml OPTIONS -A)
