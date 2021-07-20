@@ -33,15 +33,15 @@ public:
 Q_SIGNALS:
     void pointerMoved(const QSizeF &delta);
     void pointerPositionChanged(const QPointF &pos);
-    void pointerButtonPressed(uint32_t button);
-    void pointerButtonReleased(uint32_t button);
+    void pointerButtonPressed(quint32 button);
+    void pointerButtonReleased(quint32 button);
     void pointerScroll(const QSizeF &delta);
     void pointerScrollDiscrete(const QSizeF &clicks);
-    void keyboardKeyPressed(uint32_t key);
-    void keyboardKeyReleased(uint32_t key);
-    void touchDown(uint32_t id, const QPointF &pos);
-    void touchMotion(uint32_t id, const QPointF &pos);
-    void touchUp(uint32_t id);
+    void keyboardKeyPressed(quint32 key);
+    void keyboardKeyReleased(quint32 key);
+    void touchDown(quint32 id, const QPointF &pos);
+    void touchMotion(quint32 id, const QPointF &pos);
+    void touchUp(quint32 id);
 private Q_SLOTS:
     void handleEvents();
 private:
