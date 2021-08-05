@@ -183,6 +183,25 @@ bool InputEventFilter::swipeGestureCancelled(quint32 time)
     return false;
 }
 
+bool InputEventFilter::holdGestureBegin(int fingerCount, quint32 time)
+{
+    Q_UNUSED(fingerCount)
+    Q_UNUSED(time)
+    return false;
+}
+
+bool InputEventFilter::holdGestureEnd(quint32 time)
+{
+    Q_UNUSED(time)
+    return false;
+}
+
+bool InputEventFilter::holdGestureCancelled(quint32 time)
+{
+    Q_UNUSED(time)
+    return false;
+}
+
 bool InputEventFilter::switchEvent(SwitchEvent *event)
 {
     Q_UNUSED(event)
@@ -439,6 +458,17 @@ public:
         return waylandServer()->isScreenLocked();
     }
     bool swipeGestureCancelled(quint32 time) override {
+        Q_UNUSED(time)
+        // no touchpad multi-finger gestures on lock screen
+        return waylandServer()->isScreenLocked();
+    }
+    bool holdGestureBegin(int fingerCount, quint32 time) override {
+        Q_UNUSED(fingerCount)
+        Q_UNUSED(time)
+        // no touchpad multi-finger gestures on lock screen
+        return waylandServer()->isScreenLocked();
+    }
+    bool holdGestureEnd(quint32 time) override {
         Q_UNUSED(time)
         // no touchpad multi-finger gestures on lock screen
         return waylandServer()->isScreenLocked();
@@ -1561,6 +1591,27 @@ public:
         seat->cancelPointerSwipeGesture();
         return true;
     }
+    bool holdGestureBegin(int fingerCount, quint32 time) override
+    {
+        auto seat = waylandServer()->seat();
+        seat->setTimestamp(time);
+        seat->startPointerHoldGesture(time);
+        return true;
+    }
+    bool holdGestureEnd(quint32 time) override
+    {
+        auto seat = waylandServer()->seat();
+        seat->setTimestamp(time);
+        seat->endPointerHoldGesture();
+        return true;
+    }
+    bool holdGestureCancelled(quint32 time) override
+    {
+        auto seat = waylandServer()->seat();
+        seat->setTimestamp(time);
+        seat->cancelPointerHoldGesture();
+        return true;
+    }
 };
 
 static KWaylandServer::SeatInterface *findSeat()
@@ -2377,6 +2428,9 @@ void InputRedirection::setupLibInput()
         connect(conn, &LibInput::Connection::swipeGestureUpdate, m_pointer, &PointerInputRedirection::processSwipeGestureUpdate);
         connect(conn, &LibInput::Connection::swipeGestureEnd, m_pointer, &PointerInputRedirection::processSwipeGestureEnd);
         connect(conn, &LibInput::Connection::swipeGestureCancelled, m_pointer, &PointerInputRedirection::processSwipeGestureCancelled);
+        connect(conn, &LibInput::Connection::holdGestureBegin, m_pointer, &PointerInputRedirection::processHoldGestureBegin);
+        connect(conn, &LibInput::Connection::holdGestureEnd, m_pointer, &PointerInputRedirection::processHoldGestureEnd);
+        connect(conn, &LibInput::Connection::holdGestureCancelled, m_pointer, &PointerInputRedirection::processHoldGestureCancelled);
         connect(conn, &LibInput::Connection::keyChanged, m_keyboard, &KeyboardInputRedirection::processKey);
         connect(conn, &LibInput::Connection::pointerMotion, this,
             [this] (const QSizeF &delta, const QSizeF &deltaNonAccel, uint32_t time, quint64 timeMicroseconds, LibInput::Device *device) {
