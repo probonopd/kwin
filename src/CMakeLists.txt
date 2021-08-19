@@ -260,10 +260,10 @@ if (KWIN_BUILD_TABBOX)
     target_link_libraries(kwin Qt::GuiPrivate)
 endif()
 
-if (Libeis_FOUND)
+if (KWIN_BUILD_EIS)
     target_sources(kwin PRIVATE libeis/connection.cpp)
     target_link_libraries(kwin Libeis::Libeis)
-    target_compile_definitions(kwin PRIVATE HAVE_LIBEIS)
+    target_compile_definitions(kwin PRIVATE KWIN_BUILD_EIS)
 endif()
 
 qt5_generate_dbus_interface(virtualkeyboard_dbus.h org.kde.kwin.VirtualKeyboard.xml OPTIONS -A)
