@@ -300,7 +300,10 @@ namespace Xwl
 {
 class Xwayland;
 }
-
+namespace LibEis
+{
+class Connection;
+}
 class KWIN_EXPORT ApplicationWaylandAbstract : public Application
 {
     Q_OBJECT
@@ -308,6 +311,7 @@ public:
     ~ApplicationWaylandAbstract() override = 0;
 protected:
     friend class Xwl::Xwayland;
+    friend class LibEis::Connection;
 
     ApplicationWaylandAbstract(OperationMode mode, int &argc, char **argv);
     virtual void setProcessStartupEnvironment(const QProcessEnvironment &environment) {

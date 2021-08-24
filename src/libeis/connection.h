@@ -8,7 +8,6 @@
 
 #include "kwinglobals.h"
 
-
 #include <memory>
 #include <QMutex>
 

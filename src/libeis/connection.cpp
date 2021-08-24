@@ -6,6 +6,8 @@
 
 #include "connection.h"
 
+#include "main.h"
+
 #include <QDebug>
 #include <QSocketNotifier>
 #include <QThread>
@@ -38,19 +40,26 @@ Connection::Connection()
 {
     m_thread->setObjectName("libeis thread");
 
+    constexpr int maxSocketNumber = 32;
+    QByteArray socketName;
     int socketNum = 0;
-//     while () )// (QByteArrayLiteral("kwin-eis-") + QByteArray::number(socketNum++)).operator QByteArray()) != 0)
-//     {
-//     }
-    eis_setup_backend_socket(m_eis.get(), "eis-0");
+    do {
+        if (socketNum == maxSocketNumber) {
+            return;
+        }
+        socketName = QByteArrayLiteral("eis-") + QByteArray::number(socketNum++);
+    } while (eis_setup_backend_socket(m_eis.get(), socketName));
+
+    qputenv("LIBEI_SOCKET", socketName);
+    auto env = kwinApp()->processStartupEnvironment();
+    env.insert("LIBEI_SOCKET", socketName);
+    static_cast<ApplicationWaylandAbstract*>(kwinApp())->setProcessStartupEnvironment(env);
+
     const auto fd = eis_get_fd(m_eis.get());
-    qDebug() << "fd is" << fd;
-    if (fd) {
-        auto m_notifier = new QSocketNotifier(fd, QSocketNotifier::Read, this);
-        m_thread->start();
-        moveToThread(m_thread.get());
-        connect(m_notifier, &QSocketNotifier::activated, this, &Connection::handleEvents);
-    }
+    auto m_notifier = new QSocketNotifier(fd, QSocketNotifier::Read, this);
+    m_thread->start();
+    moveToThread(m_thread.get());
+    connect(m_notifier, &QSocketNotifier::activated, this, &Connection::handleEvents);
 }
 
 void Connection::handleEvents()
