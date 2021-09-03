@@ -19,7 +19,8 @@
 #include "options.h"
 #include "renderloop_p.h"
 #include "screens.h"
-#include "surfaceitem_wayland.h"
+#include "surface_wayland.h"
+#include "surfaceitem.h"
 #include "drm_gpu.h"
 #include "linux_dmabuf.h"
 #include "dumb_swapchain.h"
@@ -484,12 +485,12 @@ void EglGbmBackend::aboutToStartPainting(AbstractOutput *drmOutput, const QRegio
     }
 }
 
-PlatformSurfaceTexture *EglGbmBackend::createPlatformSurfaceTextureInternal(SurfacePixmapInternal *pixmap)
+SurfaceTexture *EglGbmBackend::createSurfaceTextureInternal(SurfacePixmapInternal *pixmap)
 {
     return new BasicEGLSurfaceTextureInternal(this, pixmap);
 }
 
-PlatformSurfaceTexture *EglGbmBackend::createPlatformSurfaceTextureWayland(SurfacePixmapWayland *pixmap)
+SurfaceTexture *EglGbmBackend::createSurfaceTextureWayland(SurfacePixmapWayland *pixmap)
 {
     return new BasicEGLSurfaceTextureWayland(this, pixmap);
 }
@@ -605,17 +606,17 @@ void EglGbmBackend::updateBufferAge(Output &output, const QRegion &dirty)
 bool EglGbmBackend::scanout(AbstractOutput *drmOutput, SurfaceItem *surfaceItem)
 {
     Q_ASSERT(m_outputs.contains(drmOutput));
-    SurfaceItemWayland *item = qobject_cast<SurfaceItemWayland *>(surfaceItem);
-    if (!item) {
-        return false;
-    }
-
-    KWaylandServer::SurfaceInterface *surface = item->surface();
+    SurfaceWayland *surface = qobject_cast<SurfaceWayland *>(surfaceItem->surface());
     if (!surface) {
         return false;
     }
 
-    auto buffer = qobject_cast<KWaylandServer::LinuxDmaBufV1ClientBuffer *>(surface->buffer());
+    KWaylandServer::SurfaceInterface *nativeSurface = surface->surface();
+    if (!nativeSurface) {
+        return false;
+    }
+
+    auto buffer = qobject_cast<KWaylandServer::LinuxDmaBufV1ClientBuffer *>(nativeSurface->buffer());
     if (!buffer) {
         return false;
     }
@@ -668,7 +669,7 @@ bool EglGbmBackend::scanout(AbstractOutput *drmOutput, SurfaceItem *surfaceItem)
     }
     // damage tracking for screen casting
     QRegion damage;
-    if (output.surfaceInterface == surface && buffer->size() == output.output->modeSize()) {
+    if (output.surfaceInterface == nativeSurface && buffer->size() == output.output->modeSize()) {
         QRegion trackedDamage = surfaceItem->damage();
         surfaceItem->resetDamage();
         for (const auto &rect : trackedDamage) {
@@ -684,11 +685,11 @@ bool EglGbmBackend::scanout(AbstractOutput *drmOutput, SurfaceItem *surfaceItem)
     makeCurrent();
     if (output.output->present(bo, damage)) {
         output.current.damageJournal.clear();
-        if (output.surfaceInterface != surface) {
-            auto path = surface->client()->executablePath();
+        if (output.surfaceInterface != nativeSurface) {
+            auto path = nativeSurface->client()->executablePath();
             qCDebug(KWIN_DRM).nospace() << "Direct scanout starting on output " << output.output->name() << " for application \"" << path << "\"";
         }
-        output.surfaceInterface = surface;
+        output.surfaceInterface = nativeSurface;
         return true;
     } else {
         return false;

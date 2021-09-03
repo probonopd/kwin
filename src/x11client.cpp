@@ -27,7 +27,8 @@
 #include "platform.h"
 #include "screenedge.h"
 #include "shadow.h"
-#include "surfaceitem_x11.h"
+#include "surface_x11.h"
+#include "surfaceitem.h"
 #include "virtualdesktops.h"
 #include "workspace.h"
 #include "decorations/decorationbridge.h"
@@ -4724,9 +4725,9 @@ void X11Client::damageNotifyEvent()
         }
     }
 
-    SurfaceItemX11 *item = static_cast<SurfaceItemX11 *>(surfaceItem());
-    if (item) {
-        item->processDamage();
+    SurfaceX11 *surface = static_cast<SurfaceX11 *>(sceneSurface());
+    if (surface) {
+        surface->processDamage();
     }
 }
 
@@ -4742,6 +4743,11 @@ void X11Client::updateWindowPixmap()
     if (auto item = surfaceItem()) {
         item->updatePixmap();
     }
+}
+
+Surface *X11Client::createSceneSurface()
+{
+    return new SurfaceX11(this);
 }
 
 } // namespace

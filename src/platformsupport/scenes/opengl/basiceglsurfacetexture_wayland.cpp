@@ -9,7 +9,7 @@
 #include "kwineglext.h"
 #include "kwingltexture.h"
 #include "logging.h"
-#include "surfaceitem_wayland.h"
+#include "surface_wayland.h"
 #include "utils.h"
 
 #include <KWaylandServer/drmclientbuffer.h>
@@ -21,7 +21,7 @@ namespace KWin
 
 BasicEGLSurfaceTextureWayland::BasicEGLSurfaceTextureWayland(OpenGLBackend *backend,
                                                              SurfacePixmapWayland *pixmap)
-    : PlatformOpenGLSurfaceTextureWayland(backend, pixmap)
+    : OpenGLSurfaceTextureWayland(backend, pixmap)
 {
 }
 

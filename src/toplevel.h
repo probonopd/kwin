@@ -38,6 +38,7 @@ class ClientMachine;
 class Deleted;
 class EffectWindowImpl;
 class Shadow;
+class Surface;
 class SurfaceItem;
 class VirtualDesktop;
 class WindowItem;
@@ -577,6 +578,8 @@ public:
     int stackingOrder() const;
     void setStackingOrder(int order); ///< @internal
 
+    Surface *sceneSurface() const;
+
 Q_SIGNALS:
     void stackingOrderChanged();
     void shadeChanged();
@@ -660,6 +663,7 @@ Q_SIGNALS:
      * This signal is emitted when the visible geometry has changed.
      */
     void visibleGeometryChanged();
+    void sceneSurfaceChanged();
 
 protected Q_SLOTS:
     /**
@@ -698,6 +702,9 @@ protected:
     void disownDataPassedToDeleted();
     void deleteShadow();
     void deleteEffectWindow();
+    void deleteSceneSurface();
+    void ensureSceneSurface();
+    virtual Surface *createSceneSurface();
     void setDepth(int depth);
     QRect m_frameGeometry;
     QRect m_clientGeometry;
@@ -719,6 +726,7 @@ private:
     bool is_shape;
     EffectWindowImpl* effect_window;
     Shadow *m_shadow = nullptr;
+    Surface *m_sceneSurface = nullptr;
     QByteArray resource_name;
     QByteArray resource_class;
     ClientMachine *m_clientMachine;

@@ -28,7 +28,7 @@
 #include "renderloop_p.h"
 #include "scene.h"
 #include "screens.h"
-#include "surfaceitem_x11.h"
+#include "surface_x11.h"
 #include "xcbutils.h"
 // kwin libs
 #include <kwinglplatform.h>
@@ -734,7 +734,7 @@ void GlxBackend::screenGeometryChanged()
     m_bufferAge = 0;
 }
 
-PlatformSurfaceTexture *GlxBackend::createPlatformSurfaceTextureX11(SurfacePixmapX11 *pixmap)
+SurfaceTexture *GlxBackend::createSurfaceTextureX11(SurfacePixmapX11 *pixmap)
 {
     return new GlxSurfaceTextureX11(this, pixmap);
 }
@@ -806,7 +806,7 @@ OverlayWindow* GlxBackend::overlayWindow() const
 }
 
 GlxSurfaceTextureX11::GlxSurfaceTextureX11(GlxBackend *backend, SurfacePixmapX11 *texture)
-    : PlatformOpenGLSurfaceTextureX11(backend, texture)
+    : OpenGLSurfaceTextureX11(backend, texture)
 {
 }
 

@@ -18,7 +18,7 @@
 #include "renderloop_p.h"
 #include "scene.h"
 #include "screens.h"
-#include "surfaceitem_wayland.h"
+#include "surface_wayland.h"
 #include "wayland_server.h"
 #include <kwinglplatform.h>
 #include <kwingltexture.h>
@@ -473,12 +473,12 @@ bool EglStreamBackend::initBufferConfigs()
     return true;
 }
 
-PlatformSurfaceTexture *EglStreamBackend::createPlatformSurfaceTextureInternal(SurfacePixmapInternal *pixmap)
+SurfaceTexture *EglStreamBackend::createSurfaceTextureInternal(SurfacePixmapInternal *pixmap)
 {
     return new BasicEGLSurfaceTextureInternal(this, pixmap);
 }
 
-PlatformSurfaceTexture *EglStreamBackend::createPlatformSurfaceTextureWayland(SurfacePixmapWayland *pixmap)
+SurfaceTexture *EglStreamBackend::createSurfaceTextureWayland(SurfacePixmapWayland *pixmap)
 {
     return new EglStreamSurfaceTextureWayland(this, pixmap);
 }
