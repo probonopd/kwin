@@ -100,6 +100,7 @@ set(kwin_SRCS
     screenlockerwatcher.cpp
     screens.cpp
     scripting/v2/clientmodel.cpp
+    scripting/v2/thumbnailitem.cpp
     scripting/v3/clientmodel.cpp
     scripting/dbuscall.cpp
     scripting/screenedgeitem.cpp
@@ -107,7 +108,6 @@ set(kwin_SRCS
     scripting/scripting.cpp
     scripting/scripting_logging.cpp
     scripting/scriptingutils.cpp
-    scripting/thumbnailitem.cpp
     scripting/workspace_wrapper.cpp
     session.cpp
     session_consolekit.cpp
