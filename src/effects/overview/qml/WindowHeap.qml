@@ -70,7 +70,7 @@ FocusScope {
                 KWinComponents.WindowThumbnailItem {
                     id: thumbSource
                     anchors.fill: parent
-                    wId: thumb.client.internalId
+                    sourceId: thumb.client.internalId
                 }
 
                 PlasmaCore.IconItem {
