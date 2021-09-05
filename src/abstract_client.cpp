@@ -3303,11 +3303,13 @@ void AbstractClient::sendToOutput(AbstractOutput *newOutput)
     newGeom.moveCenter(center);
     moveResize(newGeom);
 
-    // If the window was inside the old screen area, explicitly make sure its inside also the new screen area.
-    // Calling checkWorkspacePosition() should ensure that, but when moving to a small screen the window could
+    // If the window was completely inside the old screen area, explicitly make sure its inside also the new screen
+    // area. Calling checkWorkspacePosition() should ensure that, but when moving to a small screen the window could
     // be big enough to overlap outside of the new screen area, making struts from other screens come into effect,
     // which could alter the resulting geometry.
-    if (oldScreenArea.contains(oldGeom)) {
+    // Also explicitly put it inside the new screen area if the window was completely out of area on the first screen.
+    // This can happen for example when a XdgToplevelClient gets first initialized
+    if (oldScreenArea.contains(oldGeom) || !oldScreenArea.intersects(oldGeom)) {
         keepInArea(screenArea);
     }
 
