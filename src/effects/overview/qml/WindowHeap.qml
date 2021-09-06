@@ -65,7 +65,7 @@ FocusScope {
                 }
 
                 visible: opacity > 0
-                z: client.stackingOrder
+                z: dragHandler.active ? 100 : client.stackingOrder
 
                 KWinComponents.WindowThumbnailItem {
                     id: thumbSource

@@ -89,34 +89,49 @@ FocusScope {
         height: heapArea.height
 
         Item {
-            id: searchBar
-            width: parent.width
-            height: searchField.height + 2 * PlasmaCore.Units.largeSpacing
+            id: topBar
             state: container.organized ? "visible" : "hidden"
+            width: parent.width
+            height: searchBar.height + desktopBar.height
 
-            PC3.TextField {
-                id: searchField
-                anchors.centerIn: parent
-                width: Math.min(parent.width, 20 * PlasmaCore.Units.gridUnit)
-                focus: true
-                placeholderText: i18n("Search...")
-                clearButtonShown: true
-                Keys.priority: Keys.AfterItem
-                Keys.forwardTo: heap
+            Item {
+                id: searchBar
+                width: parent.width
+                height: searchField.height + 2 * PlasmaCore.Units.largeSpacing
+
+                PC3.TextField {
+                    id: searchField
+                    anchors.centerIn: parent
+                    width: Math.min(parent.width, 20 * PlasmaCore.Units.gridUnit)
+                    focus: true
+                    placeholderText: i18n("Search...")
+                    clearButtonShown: true
+                    Keys.priority: Keys.AfterItem
+                    Keys.forwardTo: heap
+                }
+            }
+
+            DesktopBar {
+                id: desktopBar
+                anchors.top: searchBar.bottom
+                width: parent.width
+                clientModel: stackModel
+                desktopModel: desktopModel
+                selectedDesktop: KWinComponents.Workspace.currentVirtualDesktop
             }
 
             states: [
                 State {
                     name: "hidden"
                     PropertyChanges {
-                        target: searchBar
+                        target: topBar
                         opacity: 0
                     }
                 },
                 State {
                     name: "visible"
                     PropertyChanges {
-                        target: searchBar
+                        target: topBar
                         opacity: 1
                     }
                 }
@@ -141,7 +156,7 @@ FocusScope {
         WindowHeap {
             id: heap
             width: parent.width
-            height: parent.height - searchBar.height
+            height: parent.height - topBar.height
             padding: PlasmaCore.Units.largeSpacing
             filter: searchField.text
             animationEnabled: container.animationEnabled
@@ -182,6 +197,10 @@ FocusScope {
 
     KWinComponents.ClientModel {
         id: stackModel
+    }
+
+    KWinComponents.VirtualDesktopModel {
+        id: desktopModel
     }
 
     Component.onCompleted: start();
