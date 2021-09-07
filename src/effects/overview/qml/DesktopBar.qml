@@ -87,7 +87,8 @@ Item {
                             color: "transparent"
                             border.width: 2
                             border.color: PlasmaCore.ColorScope.highlightColor
-                            visible: bar.selectedDesktop == delegate.desktop
+                            opacity: dropArea.containsDrag ? 0.5 : 1.0
+                            visible: dropArea.containsDrag || bar.selectedDesktop == delegate.desktop
                         }
 
                         MouseArea {
@@ -115,6 +116,18 @@ Item {
                             sourceComponent: PC3.ToolButton {
                                 icon.name: "delete"
                                 onClicked: delegate.remove()
+                            }
+                        }
+
+                        DropArea {
+                            id: dropArea
+                            anchors.fill: parent
+
+                            onEntered: {
+                                drag.accepted = true;
+                            }
+                            onDropped: {
+                                drag.source.desktop = delegate.desktop.x11DesktopNumber;
                             }
                         }
                     }
@@ -185,6 +198,17 @@ Item {
                 height: bar.desktopHeight
                 icon.name: "list-add"
                 onClicked: desktopModel.create(desktopModel.rowCount())
+
+                DropArea {
+                    anchors.fill: parent
+                    onEntered: {
+                        drag.accepted = desktopModel.rowCount() < 20
+                    }
+                    onDropped: {
+                        desktopModel.create(desktopModel.rowCount());
+                        drag.source.desktop = desktopModel.rowCount() + 1;
+                    }
+                }
             }
         }
     }
