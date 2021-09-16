@@ -1558,7 +1558,7 @@ void XdgToplevelClient::setFullScreen(bool set, bool user)
     updateDecoration(false, false);
 
     if (set) {
-        const AbstractOutput *output = m_fullScreenRequestedOutput ? m_fullScreenRequestedOutput.data() : kwinApp()->platform()->outputAt(moveResizeGeometry().center());
+        const AbstractOutput *output = m_fullScreenRequestedOutput ? m_fullScreenRequestedOutput.data() : kwinApp()->platform()->outputAt(realCenter(moveResizeGeometry()));
         moveResize(workspace()->clientArea(FullScreenArea, this, output));
     } else {
         m_fullScreenRequestedOutput.clear();
@@ -1595,7 +1595,7 @@ void XdgToplevelClient::changeMaximize(bool horizontal, bool vertical, bool adju
 
     const QRect clientArea = isElectricBorderMaximizing() ?
         workspace()->clientArea(MaximizeArea, this, Cursors::self()->mouse()->pos()) :
-        workspace()->clientArea(MaximizeArea, this, moveResizeGeometry().center());
+        workspace()->clientArea(MaximizeArea, this, realCenter(moveResizeGeometry()));
 
     const MaximizeMode oldMode = m_requestedMaximizeMode;
     const QRect oldGeometry = moveResizeGeometry();
@@ -1659,7 +1659,7 @@ void XdgToplevelClient::changeMaximize(bool horizontal, bool vertical, bool adju
     const auto oldQuickTileMode = quickTileMode();
     if (quickTileMode() != QuickTileMode(QuickTileFlag::None)) {
         if (oldMode == MaximizeFull &&
-                !clientArea.contains(geometryRestore().center())) {
+                !clientArea.contains(realCenter(geometryRestore()))) {
             // Not restoring on the same screen
             // TODO: The following doesn't work for some reason
             //quick_tile_mode = QuickTileNone; // And exit quick tile mode manually

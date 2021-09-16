@@ -381,7 +381,7 @@ void Toplevel::deleteEffectWindow()
 
 void Toplevel::checkOutput()
 {
-    setOutput(kwinApp()->platform()->outputAt(frameGeometry().center()));
+    setOutput(kwinApp()->platform()->outputAt(realCenter(frameGeometry())));
 }
 
 void Toplevel::setupCheckOutputConnection()

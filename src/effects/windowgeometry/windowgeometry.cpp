@@ -10,6 +10,7 @@
 #include "windowgeometry.h"
 // KConfigSkeleton
 #include "windowgeometryconfig.h"
+#include "utils.h"
 
 #include <QAction>
 #include <QLocale>

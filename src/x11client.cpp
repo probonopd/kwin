@@ -605,7 +605,7 @@ bool X11Client::manage(xcb_window_t w, bool isMapped)
     QRect area;
     bool partial_keep_in_area = isMapped || session;
     if (isMapped || session) {
-        area = workspace()->clientArea(FullArea, this, geom.center());
+        area = workspace()->clientArea(FullArea, this, realCenter(geom));
         checkOffscreenPosition(&geom, area);
     } else {
         AbstractOutput *output = nullptr;
@@ -655,7 +655,7 @@ bool X11Client::manage(xcb_window_t w, bool isMapped)
         if (m_geometryHints.hasPosition()) {
             placementDone = true;
             // Disobey xinerama placement option for now (#70943)
-            area = workspace()->clientArea(PlacementArea, this, geom.center());
+            area = workspace()->clientArea(PlacementArea, this, realCenter(geom));
         }
     }
 
@@ -689,7 +689,7 @@ bool X11Client::manage(xcb_window_t w, bool isMapped)
         placementDone = true;
         // Don't keep inside workarea if the window has specially configured position
         partial_keep_in_area = true;
-        area = workspace()->clientArea(FullArea, this, geom.center());
+        area = workspace()->clientArea(FullArea, this, realCenter(geom));
     }
     if (!placementDone) {
         // Placement needs to be after setting size
@@ -714,8 +714,8 @@ bool X11Client::manage(xcb_window_t w, bool isMapped)
         if (isMaximizable() && (width() >= area.width() || height() >= area.height())) {
             // Window is too large for the screen, maximize in the
             // directions necessary
-            const QSize ss = workspace()->clientArea(ScreenArea, this, area.center()).size();
-            const QRect fsa = workspace()->clientArea(FullArea, this, geom.center());
+            const QSize ss = workspace()->clientArea(ScreenArea, this, realCenter(area)).size();
+            const QRect fsa = workspace()->clientArea(FullArea, this, realCenter(geom));
             const QSize cs = clientSize();
             int pseudo_max = ((info->state() & NET::MaxVert) ? MaximizeVertical : 0) |
                              ((info->state() & NET::MaxHoriz) ? MaximizeHorizontal : 0);
@@ -4260,7 +4260,7 @@ void X11Client::changeMaximize(bool horizontal, bool vertical, bool adjust)
 
     case MaximizeVertical: {
         if (old_mode & MaximizeHorizontal) { // actually restoring from MaximizeFull
-            if (geometryRestore().width() == 0 || !clientArea.contains(geometryRestore().center())) {
+            if (geometryRestore().width() == 0 || !clientArea.contains(realCenter(geometryRestore()))) {
                 // needs placement
                 resize(constrainFrameSize(QSize(width() * 2 / 3, clientArea.height()), SizeModeFixedH));
                 Placement::self()->placeSmart(this, clientArea);
@@ -4280,7 +4280,7 @@ void X11Client::changeMaximize(bool horizontal, bool vertical, bool adjust)
 
     case MaximizeHorizontal: {
         if (old_mode & MaximizeVertical) { // actually restoring from MaximizeFull
-            if (geometryRestore().height() == 0 || !clientArea.contains(geometryRestore().center())) {
+            if (geometryRestore().height() == 0 || !clientArea.contains(realCenter(geometryRestore()))) {
                 // needs placement
                 resize(constrainFrameSize(QSize(clientArea.width(), height() * 2 / 3), SizeModeFixedW));
                 Placement::self()->placeSmart(this, clientArea);
@@ -4332,7 +4332,7 @@ void X11Client::changeMaximize(bool horizontal, bool vertical, bool adjust)
             restore.setSize(constrainFrameSize(restore.size(), SizeModeAny));
         }
         moveResize(restore);
-        if (!clientArea.contains(geometryRestore().center())) { // Not restoring to the same screen
+        if (!clientArea.contains(realCenter(geometryRestore()))) { // Not restoring to the same screen
             Placement::self()->place(this, clientArea);
         }
         info->setState(NET::States(), NET::Max);

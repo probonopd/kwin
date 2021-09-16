@@ -1040,7 +1040,7 @@ void AbstractClient::checkUnrestrictedInteractiveMoveResize()
     if (isUnrestrictedInteractiveMoveResize())
         return;
     const QRect &moveResizeGeom = moveResizeGeometry();
-    QRect desktopArea = workspace()->clientArea(WorkArea, this, moveResizeGeom.center());
+    QRect desktopArea = workspace()->clientArea(WorkArea, this, realCenter(moveResizeGeom));
     int left_marge, right_marge, top_marge, bottom_marge, titlebar_marge;
     // restricted move/resize - keep at least part of the titlebar always visible
     // how much must remain visible when moved away in that direction
@@ -1355,7 +1355,7 @@ void AbstractClient::handleInteractiveMoveResize(int x, int y, int x_root, int y
                 if (adjSize != moveResizeGeom.size()) {
                     QRect r(moveResizeGeom);
                     moveResizeGeom.setSize(adjSize);
-                    moveResizeGeom.moveCenter(r.center());
+                    moveResizeGeom.moveCenter(realCenter(r));
                 }
                 setMoveResizeGeometry(moveResizeGeom);
             }
@@ -1575,7 +1575,7 @@ void AbstractClient::setupWindowManagementInterface()
     connect(w, &PlasmaWindowInterface::closeRequested, this, [this] { closeWindow(); });
     connect(w, &PlasmaWindowInterface::moveRequested, this,
         [this] {
-            Cursors::self()->mouse()->setPos(frameGeometry().center());
+            Cursors::self()->mouse()->setPos(realCenter(frameGeometry()));
             performMouseCommand(Options::MouseMove, Cursors::self()->mouse()->pos());
         }
     );
@@ -3161,7 +3161,7 @@ void AbstractClient::setQuickTileMode(QuickTileMode mode, bool keyboard)
 
             setMaximize(false, false);
 
-            moveResize(electricBorderMaximizeGeometry(keyboard ? moveResizeGeometry().center() : Cursors::self()->mouse()->pos()));
+            moveResize(electricBorderMaximizeGeometry(keyboard ? realCenter(moveResizeGeometry()) : Cursors::self()->mouse()->pos()));
             // Store the mode change
             m_quickTileMode = mode;
         } else {
@@ -3176,7 +3176,7 @@ void AbstractClient::setQuickTileMode(QuickTileMode mode, bool keyboard)
     }
 
     if (mode != QuickTileMode(QuickTileFlag::None)) {
-        QPoint whichScreen = keyboard ? moveResizeGeometry().center() : Cursors::self()->mouse()->pos();
+        QPoint whichScreen = keyboard ? realCenter(moveResizeGeometry()) : Cursors::self()->mouse()->pos();
 
         // If trying to tile to the side that the window is already tiled to move the window to the next
         // screen if it exists, otherwise toggle the mode (set QuickTileFlag::None)
@@ -3296,7 +3296,7 @@ void AbstractClient::sendToOutput(AbstractOutput *newOutput)
     QRect newGeom = oldGeom;
     // move the window to have the same relative position to the center of the screen
     // (i.e. one near the middle of the right edge will also end up near the middle of the right edge)
-    QPoint center = newGeom.center() - oldScreenArea.center();
+    QPoint center = realCenter(newGeom) - oldScreenArea.center();
     center.setX(center.x() * screenArea.width() / oldScreenArea.width());
     center.setY(center.y() * screenArea.height() / oldScreenArea.height());
     center += screenArea.center();
@@ -3372,7 +3372,7 @@ void AbstractClient::checkWorkspacePosition(QRect oldGeometry, QRect oldClientGe
     if (!oldClientGeometry.isValid())
         oldClientGeometry = oldGeometry.adjusted(border[Left], border[Top], -border[Right], -border[Bottom]);
     if (isFullScreen()) {
-        moveResize(workspace()->clientArea(FullScreenArea, this, fullscreenGeometryRestore().center()));
+        moveResize(workspace()->clientArea(FullScreenArea, this, realCenter(fullscreenGeometryRestore())));
         return;
     }
 
@@ -3380,14 +3380,14 @@ void AbstractClient::checkWorkspacePosition(QRect oldGeometry, QRect oldClientGe
         GeometryUpdatesBlocker block(this);
         changeMaximize(false, false, true);   // adjust size
         QRect geom = moveResizeGeometry();
-        const QRect screenArea = workspace()->clientArea(ScreenArea, this, geom.center());
+        const QRect screenArea = workspace()->clientArea(ScreenArea, this, realCenter(geom));
         checkOffscreenPosition(&geom, screenArea);
         moveResize(geom);
         return;
     }
 
     if (quickTileMode() != QuickTileMode(QuickTileFlag::None)) {
-        moveResize(electricBorderMaximizeGeometry(moveResizeGeometry().center()));
+        moveResize(electricBorderMaximizeGeometry(realCenter(moveResizeGeometry())));
         return;
     }
 
@@ -3413,14 +3413,14 @@ void AbstractClient::checkWorkspacePosition(QRect oldGeometry, QRect oldClientGe
         oldScreenArea = QRect( 0, 0, workspace()->oldDisplayWidth(), workspace()->oldDisplayHeight());
         int distance = INT_MAX;
         Q_FOREACH(const QRect &r, workspace()->previousScreenSizes()) {
-            int d = r.contains( oldGeometry.center()) ? 0 : ( r.center() - oldGeometry.center()).manhattanLength();
+            int d = r.contains( realCenter(oldGeometry)) ? 0 : ( realCenter(r) - realCenter(oldGeometry)).manhattanLength();
             if( d < distance ) {
                 distance = d;
                 oldScreenArea = r;
             }
         }
     } else {
-        oldScreenArea = workspace()->clientArea(ScreenArea, kwinApp()->platform()->outputAt(oldGeometry.center()), oldDesktop);
+        oldScreenArea = workspace()->clientArea(ScreenArea, kwinApp()->platform()->outputAt(realCenter(oldGeometry)), oldDesktop);
     }
     const QRect oldGeomTall = QRect(oldGeometry.x(), oldScreenArea.y(), oldGeometry.width(), oldScreenArea.height());   // Full screen height
     const QRect oldGeomWide = QRect(oldScreenArea.x(), oldGeometry.y(), oldScreenArea.width(), oldGeometry.height());   // Full screen width
@@ -3428,7 +3428,7 @@ void AbstractClient::checkWorkspacePosition(QRect oldGeometry, QRect oldClientGe
     int oldRightMax = oldScreenArea.x() + oldScreenArea.width();
     int oldBottomMax = oldScreenArea.y() + oldScreenArea.height();
     int oldLeftMax = oldScreenArea.x();
-    const QRect screenArea = workspace()->clientArea(ScreenArea, this, geometryRestore().center());
+    const QRect screenArea = workspace()->clientArea(ScreenArea, this, realCenter(geometryRestore()));
     int topMax = screenArea.y();
     int rightMax = screenArea.x() + screenArea.width();
     int bottomMax = screenArea.y() + screenArea.height();

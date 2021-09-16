@@ -1171,7 +1171,7 @@ void Workspace::performWindowOperation(AbstractClient* c, Options::WindowOperati
     if (!c)
         return;
     if (op == Options::MoveOp || op == Options::UnrestrictedMoveOp)
-        Cursors::self()->mouse()->setPos(c->frameGeometry().center());
+        Cursors::self()->mouse()->setPos(realCenter(c->frameGeometry()));
     if (op == Options::ResizeOp || op == Options::UnrestrictedResizeOp)
         Cursors::self()->mouse()->setPos(c->frameGeometry().bottomRight());
     switch(op) {

@@ -1156,8 +1156,8 @@ void X11Client::NETMoveResize(int x_root, int y_root, NET::Direction direction)
         updateCursor();
     } else if (direction == NET::KeyboardMove) {
         // ignore mouse coordinates given in the message, mouse position is used by the moving algorithm
-        Cursors::self()->mouse()->setPos(frameGeometry().center());
-        performMouseCommand(Options::MouseUnrestrictedMove, frameGeometry().center());
+        Cursors::self()->mouse()->setPos(realCenter(frameGeometry()));
+        performMouseCommand(Options::MouseUnrestrictedMove, realCenter(frameGeometry()));
     } else if (direction == NET::KeyboardSize) {
         // ignore mouse coordinates given in the message, mouse position is used by the resizing algorithm
         Cursors::self()->mouse()->setPos(frameGeometry().bottomRight());

@@ -277,6 +277,11 @@ private:
     int m_capacity = 10;
 };
 
+/**
+ * QRect::center is broken for rectangles with the size 0
+ */
+QPoint realCenter(const QRect &rect);
+
 } // namespace
 
 // Must be outside namespace

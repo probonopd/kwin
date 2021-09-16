@@ -201,6 +201,11 @@ qreal qPainterEffectiveDevicePixelRatio(const QPainter *painter)
     return std::max(qreal(1), painter->device()->devicePixelRatioF());
 }
 
+QPoint realCenter(const QRect &rect)
+{
+    return QPoint(rect.x() + rect.width() / 2, rect.y() + rect.height() / 2);
+}
+
 } // namespace
 
 #ifndef KCMRULES

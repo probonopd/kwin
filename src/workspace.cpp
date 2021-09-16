@@ -1211,13 +1211,13 @@ void Workspace::slotOutputEnabled(AbstractOutput *output)
 void Workspace::slotOutputDisabled(AbstractOutput *output)
 {
     if (m_activeOutput == output) {
-        m_activeOutput = kwinApp()->platform()->outputAt(output->geometry().center());
+        m_activeOutput = kwinApp()->platform()->outputAt(realCenter(output->geometry()));
     }
 
     const auto stack = xStackingOrder();
     for (Toplevel *toplevel : stack) {
         if (toplevel->output() == output) {
-            toplevel->setOutput(kwinApp()->platform()->outputAt(toplevel->frameGeometry().center()));
+            toplevel->setOutput(kwinApp()->platform()->outputAt(realCenter(toplevel->frameGeometry())));
         }
     }
 
@@ -2454,7 +2454,7 @@ QPoint Workspace::adjustClientPosition(AbstractClient* c, QPoint pos, bool unres
     QRect maxRect;
     int guideMaximized = MaximizeRestore;
     if (c->maximizeMode() != MaximizeRestore) {
-        maxRect = clientArea(MaximizeArea, c, pos + c->rect().center());
+        maxRect = clientArea(MaximizeArea, c, pos + realCenter(c->rect()));
         QRect geo = c->frameGeometry();
         if (c->maximizeMode() & MaximizeHorizontal && (geo.x() == maxRect.left() || geo.right() == maxRect.right())) {
             guideMaximized |= MaximizeHorizontal;
@@ -2469,7 +2469,7 @@ QPoint Workspace::adjustClientPosition(AbstractClient* c, QPoint pos, bool unres
     if (options->windowSnapZone() || !borderSnapZone.isNull() || options->centerSnapZone()) {
 
         const bool sOWO = options->isSnapOnlyWhenOverlapping();
-        const AbstractOutput *output = kwinApp()->platform()->outputAt(pos + c->rect().center());
+        const AbstractOutput *output = kwinApp()->platform()->outputAt(pos + realCenter(c->rect()));
         if (maxRect.isNull())
             maxRect = clientArea(MovementArea, c, output);
         const int xmin = maxRect.left();
@@ -2641,7 +2641,7 @@ QRect Workspace::adjustClientSize(AbstractClient* c, QRect moveResizeGeom, int m
     if (options->windowSnapZone() || options->borderSnapZone()) {  // || options->centerSnapZone )
         const bool sOWO = options->isSnapOnlyWhenOverlapping();
 
-        const QRect maxRect = clientArea(MovementArea, c, c->rect().center());
+        const QRect maxRect = clientArea(MovementArea, c, realCenter(c->rect()));
         const int xmin = maxRect.left();
         const int xmax = maxRect.right();               //desk size
         const int ymin = maxRect.top();
