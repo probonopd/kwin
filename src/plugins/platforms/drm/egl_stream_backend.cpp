@@ -284,6 +284,16 @@ void EglStreamBackend::init()
     }
 }
 
+const EglStreamBackend::Output *EglStreamBackend::findConnectedOutput() const
+{
+    for (auto &output : qAsConst(m_outputs)) {
+        if (output.eglSurface != EGL_NO_SURFACE) {
+            return &output;
+        }
+    }
+    return nullptr;
+}
+
 bool EglStreamBackend::initRenderingContext()
 {
     initBufferConfigs();
@@ -296,7 +306,8 @@ bool EglStreamBackend::initRenderingContext()
     for (DrmAbstractOutput *drmOutput : outputs) {
         addOutput(drmOutput);
     }
-    return !m_outputs.isEmpty() && m_outputs.first().eglSurface != EGL_NO_SURFACE && makeContextCurrent(m_outputs.first());
+    const auto &output = findConnectedOutput();
+    return output && output->eglSurface && makeContextCurrent(*output);
 }
 
 bool EglStreamBackend::resetOutput(Output &o)
@@ -359,8 +370,13 @@ bool EglStreamBackend::resetOutput(Output &o)
 
             o.eglStream = stream;
             o.eglSurface = eglSurface;
-        } else {
             makeContextCurrent(o);
+        } else {
+            if (const auto &output = findConnectedOutput()) {
+                output->eglSurface && makeContextCurrent(*output);
+            } else {
+                makeContextCurrent(o);
+            }
             o.secondarySurface = QSharedPointer<ShadowBuffer>::create(sourceSize);
             if (!o.secondarySurface->isComplete()) {
                 cleanupOutput(o);
@@ -368,7 +384,6 @@ bool EglStreamBackend::resetOutput(Output &o)
             }
         }
         if (drmOutput->needsSoftwareTransformation() || o.output->gpu() != m_gpu) {
-            makeContextCurrent(o);
             o.shadowBuffer = QSharedPointer<ShadowBuffer>::create(o.output->pixelSize());
             if (!o.shadowBuffer->isComplete()) {
                 cleanupOutput(o);
